@@ -266,8 +266,10 @@ export function ProjectCard({ title, subtitle, desc, tags, metric, metricLabel, 
   );
 }
 
-/* Image with graceful placeholder while the real file isn't in /public/images yet */
-export function ImgFrame({ src, alt, style = {} }) {
+/* Image with graceful placeholder while the real file isn't in /public/images yet.
+   mode "cover" fills a fixed frame (crops); mode "full" shows the whole image at
+   natural aspect ratio (for tall full-page screenshots viewed in a scroll frame). */
+export function ImgFrame({ src, alt, style = {}, mode = "cover" }) {
   const { t } = useLang();
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
@@ -277,7 +279,7 @@ export function ImgFrame({ src, alt, style = {} }) {
         role="img"
         aria-label={alt}
         style={{
-          width: "100%", height: "100%", display: "flex", flexDirection: "column",
+          width: "100%", height: mode === "full" ? 240 : "100%", display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center", gap: 8,
           backgroundColor: "#E9E9EB", color: T.inkMuted,
           fontFamily: T.fontMono, fontSize: 12, textAlign: "center", padding: 16, ...style,
@@ -288,6 +290,10 @@ export function ImgFrame({ src, alt, style = {} }) {
       </div>
     );
   }
+  const fitStyle =
+    mode === "full"
+      ? { width: "100%", height: "auto" }
+      : { width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" };
   return (
     <img
       src={src}
@@ -295,12 +301,12 @@ export function ImgFrame({ src, alt, style = {} }) {
       loading="lazy"
       onError={() => setFailed(true)}
       className="shot-img"
-      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block", ...style }}
+      style={{ display: "block", ...fitStyle, ...style }}
     />
   );
 }
 
-export function ScreenShowcase({ screens, groupLabel }) {
+export function ScreenShowcase({ screens, groupLabel, scrollHint }) {
   const [i, setI] = useState(0);
   const s = screens[i];
   return (
@@ -311,9 +317,17 @@ export function ScreenShowcase({ screens, groupLabel }) {
           <div style={{ fontFamily: T.fontHeading, fontSize: 15, fontWeight: 600, color: T.ink }}>{s.title}</div>
           <div style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkSoft, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
         </div>
-        <div style={{ padding: "8px 20px 20px", display: "flex", justifyContent: "center" }}>
-          <div style={{ width: "100%", maxWidth: 640, aspectRatio: "16/10", borderRadius: 8, border: `1px solid ${T.border}`, overflow: "hidden", backgroundColor: "#E9E9EB" }}>
-            <ImgFrame key={s.src} src={s.src} alt={s.alt} />
+        <div style={{ padding: "8px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            tabIndex={0}
+            role="group"
+            aria-label={`${s.title} — full screen, scrollable`}
+            style={{ width: "100%", maxWidth: 640, height: 460, borderRadius: 8, border: `1px solid ${T.border}`, overflowY: "auto", overflowX: "hidden", backgroundColor: "#E9E9EB" }}
+          >
+            <ImgFrame key={s.src} src={s.src} alt={s.alt} mode="full" />
+          </div>
+          <div aria-hidden="true" style={{ fontFamily: T.fontMono, fontSize: 10, color: T.inkMuted, marginTop: 6 }}>
+            {scrollHint}
           </div>
         </div>
       </div>

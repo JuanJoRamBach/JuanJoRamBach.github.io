@@ -202,7 +202,7 @@ export function Keepex() {
         <FadeIn>
           <Label>{k.finalLabel}</Label>
           <h2 style={{ fontFamily: T.fontHeading, fontSize: 24, fontWeight: 700, color: T.ink, margin: "0 0 4px", letterSpacing: "-0.02em" }}>{k.finalTitle}</h2>
-          <ScreenShowcase screens={k.screens} groupLabel={k.finalTitle} />
+          <ScreenShowcase screens={k.screens} groupLabel={k.finalTitle} scrollHint={k.scrollHint} />
         </FadeIn>
       </section>
 

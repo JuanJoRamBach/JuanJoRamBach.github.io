@@ -190,6 +190,7 @@ export const content = {
       },
       finalLabel: "Final Design",
       finalTitle: "Key screens",
+      scrollHint: "↕ Scroll inside the frame to see the full page",
       screens: [
         { label: "Homepage", title: "Hero & service categories", desc: "Landing page with clear CTAs and task-based robot categories.", src: "images/keepex-homepage.jpg", alt: "KeepeX homepage design with hero section and robot service categories" },
         { label: "Entity Select", title: "User segmentation", desc: "Users self-identify as personal, community, or business — shaping the experience.", src: "images/keepex-entity.jpg", alt: "KeepeX entity selection screen where users choose personal, community, or business profile" },
@@ -491,6 +492,7 @@ export const content = {
       },
       finalLabel: "Diseño final",
       finalTitle: "Pantallas clave",
+      scrollHint: "↕ Desplázate dentro del marco para ver la página completa",
       screens: [
         { label: "Homepage", title: "Hero y categorías de servicio", desc: "Página de inicio con CTAs claros y categorías de robots organizadas por tarea.", src: "images/keepex-homepage.jpg", alt: "Diseño de la homepage de KeepeX con sección hero y categorías de servicios robóticos" },
         { label: "Tipo de usuario", title: "Segmentación de usuarios", desc: "Los usuarios se identifican como personal, comunidad o empresa — dando forma a la experiencia.", alt: "Pantalla de selección de tipo de usuario de KeepeX: personal, comunidad o empresa", src: "images/keepex-entity.jpg" },
