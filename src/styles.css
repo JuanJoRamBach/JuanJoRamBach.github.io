@@ -1,0 +1,130 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: #ffffff;
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* Visible keyboard focus everywhere, without polluting mouse clicks */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* Skip link: hidden until focused via keyboard */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 16px;
+  z-index: 200;
+  padding: 10px 18px;
+  background: #2563eb;
+  color: #ffffff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Page-level transition on route change */
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page {
+  animation: pageIn 0.4s ease both;
+}
+
+/* Gallery image crossfade */
+.shot-img {
+  transition: opacity 0.3s ease;
+}
+
+/* Responsive nav: full name → short name → links only as space shrinks */
+.nav-links {
+  gap: 6px;
+}
+
+.nav-name-short {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .nav-name-full {
+    display: none;
+  }
+  .nav-name-short {
+    display: inline;
+  }
+}
+
+@media (max-width: 680px) {
+  .nav-name {
+    display: none;
+  }
+  .nav-links {
+    width: 100%;
+    justify-content: space-between;
+    gap: 2px;
+  }
+  .nav-link {
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Hide the hero photo on small screens where it would wrap below the CTAs */
+@media (max-width: 680px) {
+  .hero-photo {
+    display: none !important;
+  }
+}
+
+/* Respect users who turn animations off — kills page transitions,
+   scroll-reveal movement, and smooth scrolling in one place */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

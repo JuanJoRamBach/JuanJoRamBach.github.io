@@ -1,0 +1,388 @@
+import { useState, useEffect, useRef } from "react";
+import { T } from "./tokens.js";
+import { useLang } from "./lang.jsx";
+import { links } from "./content.js";
+
+export function nav(hash) {
+  window.location.hash = hash;
+}
+
+const REDUCED_MOTION =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Renders **bold** segments inside copy strings */
+export function Rich({ text }) {
+  const parts = text.split("**");
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} style={{ color: T.ink, fontWeight: 600 }}>{p}</strong>
+        ) : (
+          <span key={i}>{p}</span>
+        )
+      )}
+    </>
+  );
+}
+
+/* Sliding EN/ES segmented control */
+function LangSwitch() {
+  const { t, lang, setLang } = useLang();
+  const SEG_W = 40;
+  return (
+    <div
+      role="group"
+      aria-label={t.langSwitch.groupLabel}
+      style={{
+        position: "relative", display: "flex", alignItems: "center",
+        border: `1.5px solid ${T.border}`, borderRadius: 8, padding: 3,
+        backgroundColor: T.bgAlt,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute", top: 3, left: 3, width: SEG_W, height: "calc(100% - 6px)",
+          borderRadius: 6, backgroundColor: T.accent,
+          transform: lang === "es" ? `translateX(${SEG_W}px)` : "translateX(0)",
+          transition: "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      />
+      {["en", "es"].map((code) => (
+        <button
+          key={code}
+          onClick={() => setLang(code)}
+          aria-pressed={lang === code}
+          aria-label={t.langSwitch[code]}
+          style={{
+            position: "relative", zIndex: 1, width: SEG_W, padding: "4px 0",
+            fontFamily: T.fontMono, fontSize: 12, fontWeight: 500, textAlign: "center",
+            color: lang === code ? T.white : T.inkSoft,
+            backgroundColor: "transparent", border: "none", cursor: "pointer",
+            transition: "color 0.22s",
+          }}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function NavBar({ hash }) {
+  const { t } = useLang();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+  // Case studies live under Work: keep "Work" highlighted while reading them
+  // so users never lose track of where they are in the site's hierarchy.
+  const isActive = (href) =>
+    hash === href || (href === "#portfolio" && (hash === "#keepex" || hash === "#runquest"));
+  return (
+    <header
+      style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "0 24px", height: 60,
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+        backgroundColor: scrolled ? "rgba(255,255,255,0.97)" : "rgba(255,255,255,0.6)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        boxShadow: scrolled ? "0 1px 8px rgba(0,0,0,0.06)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.04)" : "1px solid transparent",
+        transition: "background-color 0.25s ease, box-shadow 0.25s ease",
+      }}
+    >
+      <a
+        className="nav-name"
+        href="#home"
+        style={{ fontFamily: T.fontHeading, fontSize: 16, fontWeight: 700, color: T.ink, textDecoration: "none", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}
+      >
+        <span className="nav-name-full">{t.fullName}</span>
+        <span className="nav-name-short">{t.name}</span>
+      </a>
+      <nav aria-label={t.navAria} className="nav-links" style={{ display: "flex", alignItems: "center" }}>
+        {t.nav.map((l) => {
+          const active = isActive(l.href);
+          return (
+            <a
+              key={l.href}
+              href={l.href}
+              aria-current={hash === l.href ? "page" : undefined}
+              className="nav-link"
+              style={{
+                fontFamily: T.fontBody, fontSize: 14, textDecoration: "none",
+                fontWeight: active ? 600 : 500,
+                color: active ? T.accent : T.inkSoft,
+                backgroundColor: active ? T.accentLight : "transparent",
+                padding: "6px 12px", borderRadius: 8, whiteSpace: "nowrap",
+                transition: "color 0.15s, background-color 0.15s",
+              }}
+            >
+              {l.label}
+            </a>
+          );
+        })}
+        <LangSwitch />
+      </nav>
+    </header>
+  );
+}
+
+export function Foot() {
+  const { t } = useLang();
+  return (
+    <footer style={{ padding: "40px 24px", borderTop: `1px solid ${T.border}` }}>
+      <div style={{ maxWidth: T.maxW, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <span style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkMuted }}>{t.footer.rights}</span>
+        <div style={{ display: "flex", gap: 20 }}>
+          <a href={links.LINKEDIN} target="_blank" rel="noopener noreferrer" style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkSoft, textDecoration: "none" }}>LinkedIn</a>
+          <a href={`mailto:${links.EMAIL}`} style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkSoft, textDecoration: "none" }}>Email</a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function FadeIn({ children, delay = 0, style = {} }) {
+  const ref = useRef(null);
+  const [v, setV] = useState(REDUCED_MOTION);
+  useEffect(() => {
+    if (REDUCED_MOTION) return;
+    const o = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setV(true); o.disconnect(); } },
+      { threshold: 0.08 }
+    );
+    if (ref.current) o.observe(ref.current);
+    return () => o.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: v ? 1 : 0,
+        transform: v ? "translateY(0)" : "translateY(20px)",
+        transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function Label({ children }) {
+  return <div style={{ fontFamily: T.fontMono, fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.1em", color: T.accent, marginBottom: 10 }}>{children}</div>;
+}
+
+export function Tag({ children }) {
+  return <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 6, backgroundColor: T.bgAlt, fontFamily: T.fontBody, fontSize: 12, fontWeight: 500, color: T.inkSoft }}>{children}</span>;
+}
+
+export function Stat({ n, label }) {
+  return (
+    <div style={{ textAlign: "center", padding: "20px 24px", borderRadius: T.radius, backgroundColor: T.bgAlt, flex: "1 1 160px" }}>
+      <div style={{ fontFamily: T.fontHeading, fontSize: 32, fontWeight: 700, color: T.accent, lineHeight: 1, marginBottom: 4 }}>{n}</div>
+      <div style={{ fontFamily: T.fontBody, fontSize: 12, fontWeight: 500, color: T.inkSoft }}>{label}</div>
+    </div>
+  );
+}
+
+export function Callout({ children, icon = "💡" }) {
+  return (
+    <div style={{ padding: "16px 18px", borderRadius: T.radius, backgroundColor: T.accentLight, borderLeft: `3px solid ${T.accent}`, margin: "20px 0", display: "flex", gap: 10, alignItems: "flex-start" }}>
+      <span aria-hidden="true" style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
+      <div style={{ fontFamily: T.fontBody, fontSize: 14, lineHeight: 1.7, color: T.ink }}>{children}</div>
+    </div>
+  );
+}
+
+export function ContactCTA() {
+  const { t } = useLang();
+  return (
+    <section style={{ padding: "72px 24px", textAlign: "center" }}>
+      <FadeIn>
+        <Label>{t.cta.label}</Label>
+        <h2 style={{ fontFamily: T.fontHeading, fontSize: 32, fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: "-0.02em" }}>{t.cta.title}</h2>
+        <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.inkSoft, margin: "0 auto 24px", maxWidth: 440, lineHeight: 1.6 }}>{t.cta.body}</p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <a
+            href={links.LINKEDIN}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontFamily: T.fontBody, fontSize: 14, fontWeight: 600, color: T.white, backgroundColor: T.accent, padding: "10px 24px", borderRadius: 8, textDecoration: "none", transition: "background-color 0.2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = T.accentHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = T.accent)}
+          >
+            {t.cta.connect}
+          </a>
+          <a href={`mailto:${links.EMAIL}`} style={{ fontFamily: T.fontBody, fontSize: 14, fontWeight: 600, color: T.ink, padding: "10px 24px", borderRadius: 8, textDecoration: "none", border: `1.5px solid ${T.border}` }}>
+            {links.EMAIL}
+          </a>
+        </div>
+      </FadeIn>
+    </section>
+  );
+}
+
+export function ProjectCard({ title, subtitle, desc, tags, metric, metricLabel, href, idx }) {
+  const { t } = useLang();
+  const [h, setH] = useState(false);
+  return (
+    <FadeIn delay={idx * 0.12}>
+      <a
+        href={href}
+        onMouseEnter={() => setH(true)}
+        onMouseLeave={() => setH(false)}
+        style={{
+          display: "block", padding: "32px 28px", borderRadius: T.radius, textDecoration: "none",
+          border: `1.5px solid ${h ? T.accent : T.border}`,
+          backgroundColor: h ? T.accentLight : T.white,
+          transition: "border-color 0.2s ease, background-color 0.2s ease",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <Label>{subtitle}</Label>
+            <h3 style={{ fontFamily: T.fontHeading, fontSize: 26, fontWeight: 700, color: T.ink, margin: "0 0 10px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{title}</h3>
+            <p style={{ fontFamily: T.fontBody, fontSize: 14, lineHeight: 1.7, color: T.inkSoft, margin: "0 0 14px", maxWidth: 500 }}>{desc}</p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{tags.map((x) => <Tag key={x}>{x}</Tag>)}</div>
+          </div>
+          {metric && (
+            <div style={{ padding: "16px 24px", borderRadius: 10, backgroundColor: h ? T.white : T.bgAlt, textAlign: "center", flexShrink: 0, transition: "background-color 0.2s" }}>
+              <div style={{ fontFamily: T.fontHeading, fontSize: 28, fontWeight: 700, color: T.accent, lineHeight: 1 }}>{metric}</div>
+              <div style={{ fontFamily: T.fontMono, fontSize: 11, color: T.inkMuted, marginTop: 4 }}>{metricLabel}</div>
+            </div>
+          )}
+        </div>
+        <div style={{ marginTop: 16, fontFamily: T.fontBody, fontSize: 13, fontWeight: 600, color: T.accent, display: "flex", alignItems: "center", gap: 4 }}>
+          {t.readCase} <span aria-hidden="true" style={{ transform: h ? "translateX(3px)" : "none", transition: "transform 0.2s" }}>→</span>
+        </div>
+      </a>
+    </FadeIn>
+  );
+}
+
+/* Image with graceful placeholder while the real file isn't in /public/images yet */
+export function ImgFrame({ src, alt, style = {} }) {
+  const { t } = useLang();
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
+  if (failed) {
+    return (
+      <div
+        role="img"
+        aria-label={alt}
+        style={{
+          width: "100%", height: "100%", display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", gap: 8,
+          backgroundColor: "#E9E9EB", color: T.inkMuted,
+          fontFamily: T.fontMono, fontSize: 12, textAlign: "center", padding: 16, ...style,
+        }}
+      >
+        <span aria-hidden="true" style={{ fontSize: 26 }}>🖼️</span>
+        {t.imgPending}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="shot-img"
+      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block", ...style }}
+    />
+  );
+}
+
+export function ScreenShowcase({ screens, groupLabel }) {
+  const [i, setI] = useState(0);
+  const s = screens[i];
+  return (
+    <div style={{ margin: "28px 0" }}>
+      <div style={{ borderRadius: T.radius, border: `1px solid ${T.border}`, overflow: "hidden", backgroundColor: T.bgAlt, marginBottom: 12 }}>
+        <div style={{ padding: "20px 20px 8px" }}>
+          <div style={{ fontFamily: T.fontMono, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: T.accent, marginBottom: 4 }}>{s.label}</div>
+          <div style={{ fontFamily: T.fontHeading, fontSize: 15, fontWeight: 600, color: T.ink }}>{s.title}</div>
+          <div style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkSoft, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+        </div>
+        <div style={{ padding: "8px 20px 20px", display: "flex", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: 640, aspectRatio: "16/10", borderRadius: 8, border: `1px solid ${T.border}`, overflow: "hidden", backgroundColor: "#E9E9EB" }}>
+            <ImgFrame key={s.src} src={s.src} alt={s.alt} />
+          </div>
+        </div>
+      </div>
+      <div role="group" aria-label={groupLabel} style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
+        {screens.map((sc, idx) => (
+          <button
+            key={idx}
+            onClick={() => setI(idx)}
+            aria-pressed={idx === i}
+            style={{
+              flexShrink: 0, padding: "6px 14px", borderRadius: 6, cursor: "pointer", fontFamily: T.fontBody, fontSize: 12, fontWeight: 500,
+              border: `1.5px solid ${idx === i ? T.accent : T.border}`,
+              backgroundColor: idx === i ? T.accentLight : T.white,
+              color: idx === i ? T.accent : T.inkSoft,
+              transition: "border-color 0.15s, background-color 0.15s, color 0.15s",
+            }}
+          >
+            {sc.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function CaseHero({ title, subtitle, desc, meta }) {
+  const { t } = useLang();
+  return (
+    <section style={{ padding: "72px 24px 40px", maxWidth: 720, margin: "0 auto" }}>
+      <FadeIn>
+        <a href="#portfolio" style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkMuted, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 20 }}>{t.backToWork}</a>
+        <Label>{subtitle}</Label>
+        <h1 style={{ fontFamily: T.fontHeading, fontSize: "clamp(30px, 5vw, 48px)", fontWeight: 700, color: T.ink, margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>{title}</h1>
+        <p style={{ fontFamily: T.fontBody, fontSize: 16, lineHeight: 1.7, color: T.inkSoft, margin: "0 0 28px", maxWidth: 580 }}>{desc}</p>
+      </FadeIn>
+      <FadeIn delay={0.08}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 16, padding: "20px 24px", borderRadius: T.radius, backgroundColor: T.bgAlt, border: `1px solid ${T.borderLight}` }}>
+          {meta.map((m) => (
+            <div key={m.l}>
+              <div style={{ fontFamily: T.fontMono, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: T.inkMuted, marginBottom: 3 }}>{m.l}</div>
+              <div style={{ fontFamily: T.fontBody, fontSize: 13, fontWeight: 600, color: T.ink }}>{m.v}</div>
+            </div>
+          ))}
+        </div>
+      </FadeIn>
+    </section>
+  );
+}
+
+export function Sec({ label, title, children }) {
+  return (
+    <section style={{ padding: "0 24px", maxWidth: 720, margin: "0 auto 40px" }}>
+      <FadeIn>
+        <Label>{label}</Label>
+        {title && <h2 style={{ fontFamily: T.fontHeading, fontSize: 24, fontWeight: 700, color: T.ink, margin: "0 0 12px", letterSpacing: "-0.02em", lineHeight: 1.25 }}>{title}</h2>}
+        <div style={{ fontFamily: T.fontBody, fontSize: 15, lineHeight: 1.75, color: T.inkSoft }}>{children}</div>
+      </FadeIn>
+    </section>
+  );
+}
+
+export function FeatureCard({ title, desc, tag }) {
+  return (
+    <div style={{ padding: "14px 18px", borderRadius: 10, backgroundColor: T.bgAlt, border: `1px solid ${T.borderLight}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 6 }}>
+        <span style={{ fontFamily: T.fontHeading, fontSize: 14, fontWeight: 600, color: T.ink }}>{title}</span>
+        {tag && <span style={{ fontFamily: T.fontMono, fontSize: 11, color: T.accent }}>{tag}</span>}
+      </div>
+      <div style={{ fontFamily: T.fontBody, fontSize: 13, color: T.inkSoft, lineHeight: 1.6, marginTop: 4 }}>{desc}</div>
+    </div>
+  );
+}
