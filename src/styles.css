@@ -107,6 +107,13 @@ img {
   }
 }
 
+/* On narrow screens the card preview drops below the text at full width */
+@media (max-width: 680px) {
+  .card-cover {
+    flex-basis: 100% !important;
+  }
+}
+
 /* Hide the hero photo on small screens where it would wrap below the CTAs */
 @media (max-width: 680px) {
   .hero-photo {

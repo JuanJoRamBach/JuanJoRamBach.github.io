@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { T } from "./tokens.js";
 import { LangProvider, useLang } from "./lang.jsx";
 import { NavBar } from "./components.jsx";
-import { Home, About, Portfolio, Keepex, RunQuest, Contact } from "./pages.jsx";
+import { Home, About, Portfolio, Keepex, RunQuest, Pulso, Sismico, Navi, Contact } from "./pages.jsx";
 
 function useHash() {
   const [hash, setHash] = useState(window.location.hash || "#home");
@@ -20,6 +20,9 @@ const ROUTES = {
   "#portfolio": { page: Portfolio, title: "portfolio" },
   "#keepex": { page: Keepex, title: "keepex" },
   "#runquest": { page: RunQuest, title: "runquest" },
+  "#pulso": { page: Pulso, title: "pulso" },
+  "#sismico": { page: Sismico, title: "sismico" },
+  "#navi": { page: Navi, title: "navi" },
   "#contact": { page: Contact, title: "contact" },
 };
 
